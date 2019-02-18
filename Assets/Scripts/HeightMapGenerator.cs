@@ -8,7 +8,6 @@ public class HeightMapGenerator : MonoBehaviour {
 
     public int mapSize = 256;
     public int numOctaves = 4;
-    public float heightMultiplier = 1;
     public float persistence = .5f;
     public float lacunarity = 2;
     public float initialScale = 1;
