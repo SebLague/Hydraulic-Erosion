@@ -16,6 +16,8 @@ public class Erosion : MonoBehaviour {
     List<int>[] neighbours;
     List<DropletInfluence>[] dropletInfluenceMap;
 
+    public List<int> debugPoints;
+
     int size;
 
     public void Init (int size) {
@@ -42,65 +44,65 @@ public class Erosion : MonoBehaviour {
 
                     int x = centreX + xOffset;
                     int y = centreY + yOffset;
-                    int neighbourI = y*size + x;
+                    int neighbourI = y * size + x;
 
                     if (x >= 0 && x < size && y >= 0 && y < size) {
-                        if (Mathf.Abs(xOffset) <= 1 && Mathf.Abs(yOffset) <= 1) {
-                            neighbours[i].Add(neighbourI);
+                        if (Mathf.Abs (xOffset) <= 1 && Mathf.Abs (yOffset) <= 1) {
+                            neighbours[i].Add (neighbourI);
                         }
 
                         if (xOffset * xOffset + yOffset * yOffset <= dropletRadius * dropletRadius) {
-                            float weight = 1- Mathf.Sqrt(xOffset*xOffset + yOffset * yOffset)/dropletRadius;
-                            dropletInfluenceMap[i].Add(new DropletInfluence(neighbourI,weight));
+                            float weight = 1 - Mathf.Sqrt (xOffset * xOffset + yOffset * yOffset) / dropletRadius;
+                            dropletInfluenceMap[i].Add (new DropletInfluence (neighbourI, weight));
                         }
                     }
                 }
             }
         }
 
-        print("init complete");
+        print ("init complete");
     }
 
     public void Erode (float[] map) {
-
+        debugPoints = new List<int> ();
         int dropletIndex = prng.Next (0, map.Length);
         float soilQuantity = 0;
 
-        
         int maxLifetime = size;
 
-        for (int lifetime = 0; lifetime < maxLifetime; lifetime++)
-        {
+        for (int lifetime = 0; lifetime < maxLifetime; lifetime++) {
+            debugPoints.Add (dropletIndex);
             float dropletHeight = map[dropletIndex];
 
             int lowestNearbyIndex = 0;
             float lowestNearbyHeight = float.MaxValue;
 
-            for (int i = 0; i < dropletInfluenceMap[dropletIndex].Count; i++)
-            {
-                DropletInfluence pointUnderDroplet = dropletInfluenceMap[dropletIndex][i];
-                if (map[pointUnderDroplet.index] < lowestNearbyHeight) {
-                    lowestNearbyHeight = map[pointUnderDroplet.index];
-                    lowestNearbyIndex = pointUnderDroplet.index;
+            for (int i = 0; i < neighbours[dropletIndex].Count; i++) {
+                int neighbourIndex = neighbours[dropletIndex][i];
+                if (map[neighbourIndex] < lowestNearbyHeight) {
+                    lowestNearbyHeight = map[neighbourIndex];
+                    lowestNearbyIndex = neighbourIndex;
                 }
+            }
+
+            for (int i = 0; i < dropletInfluenceMap[dropletIndex].Count; i++) {
+                DropletInfluence pointUnderDroplet = dropletInfluenceMap[dropletIndex][i];
 
                 if (soilQuantity < 1) {
                     float absorbAmount = absorptionFactor * pointUnderDroplet.weight;
                     soilQuantity += absorbAmount;
-                    map[pointUnderDroplet.index] -= absorbAmount;
-                }
-                else {
+                    //map[pointUnderDroplet.index] -= absorbAmount;
+                } else {
                     float depositAmount = depositFactor * pointUnderDroplet.weight;
                     soilQuantity -= depositAmount;
-                    map[pointUnderDroplet.index] += depositAmount;
+                    //map[pointUnderDroplet.index] += depositAmount;
                 }
             }
 
             if (lowestNearbyHeight < dropletHeight) {
                 dropletIndex = lowestNearbyIndex;
-            }
-            else {
-                print("Exit");
+            } else {
+                print ("Exit");
                 break;
             }
         }
@@ -111,7 +113,7 @@ public class Erosion : MonoBehaviour {
         public int index;
         public float weight;
 
-        public DropletInfluence(int index, float weight) {
+        public DropletInfluence (int index, float weight) {
             this.index = index;
             this.weight = weight;
         }
