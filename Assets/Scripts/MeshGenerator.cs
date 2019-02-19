@@ -23,7 +23,7 @@ public class MeshGenerator : MonoBehaviour {
     }
 
     [ContextMenu ("Erode")]
-    void Erode () {
+    public void Erode () {
         erosion = FindObjectOfType<Erosion> ();
 
         for (int i = 0; i < erosionIterations; i++) {

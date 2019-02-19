@@ -10,10 +10,11 @@ public class Erosion : MonoBehaviour {
     public float absorptionFactor = .1f;
     public float depositFactor = .1f;
     public float soilCarryCapacity = 1;
+    public float acceleration = 1;
 
     System.Random prng;
 
-    List<int>[] neighbours;
+    List<Neighbour>[] neighbours;
     List<DropletInfluence>[] dropletInfluenceMap;
 
     public List<int> debugPoints;
@@ -26,14 +27,14 @@ public class Erosion : MonoBehaviour {
         seed = (randomizeSeed) ? Random.Range (-10000, 10000) : seed;
         prng = new System.Random (seed);
 
-        neighbours = new List<int>[size * size];
+        neighbours = new List<Neighbour>[size * size];
         dropletInfluenceMap = new List<DropletInfluence>[size * size];
 
         for (int i = 0; i < size * size; i++) {
             int centreX = i % size;
             int centreY = i / size;
 
-            neighbours[i] = new List<int> ();
+            neighbours[i] = new List<Neighbour> ();
             dropletInfluenceMap[i] = new List<DropletInfluence> ();
 
             for (int xOffset = -dropletRadius; xOffset <= dropletRadius; xOffset++) {
@@ -48,7 +49,8 @@ public class Erosion : MonoBehaviour {
 
                     if (x >= 0 && x < size && y >= 0 && y < size) {
                         if (Mathf.Abs (xOffset) <= 1 && Mathf.Abs (yOffset) <= 1) {
-                            neighbours[i].Add (neighbourI);
+                            Vector2 dir = new Vector2 (x - centreX, y - centreY).normalized;
+                            neighbours[i].Add (new Neighbour (neighbourI, dir));
                         }
 
                         if (xOffset * xOffset + yOffset * yOffset <= dropletRadius * dropletRadius) {
@@ -69,21 +71,25 @@ public class Erosion : MonoBehaviour {
         float soilQuantity = 0;
 
         int maxLifetime = size;
+        Vector2 velocity = Vector2.zero;
 
         for (int lifetime = 0; lifetime < maxLifetime; lifetime++) {
             debugPoints.Add (dropletIndex);
             float dropletHeight = map[dropletIndex];
 
-            int lowestNearbyIndex = 0;
+            int lowestNearbyNeighbourIndex = 0;
             float lowestNearbyHeight = float.MaxValue;
 
             for (int i = 0; i < neighbours[dropletIndex].Count; i++) {
-                int neighbourIndex = neighbours[dropletIndex][i];
+                int neighbourIndex = neighbours[dropletIndex][i].index;
                 if (map[neighbourIndex] < lowestNearbyHeight) {
                     lowestNearbyHeight = map[neighbourIndex];
-                    lowestNearbyIndex = neighbourIndex;
+                    lowestNearbyNeighbourIndex = i;
                 }
             }
+            float deltaHeight = dropletHeight - lowestNearbyHeight;
+  
+            velocity += neighbours[dropletIndex][lowestNearbyNeighbourIndex].dir * deltaHeight * acceleration;
 
             for (int i = 0; i < dropletInfluenceMap[dropletIndex].Count; i++) {
                 DropletInfluence pointUnderDroplet = dropletInfluenceMap[dropletIndex][i];
@@ -99,14 +105,27 @@ public class Erosion : MonoBehaviour {
                 }
             }
 
-            if (lowestNearbyHeight < dropletHeight) {
-                dropletIndex = lowestNearbyIndex;
+            Vector2 pos = new Vector2 (dropletIndex % size, dropletIndex / size);
+            pos += velocity.normalized;
+            Vector2Int coord = new Vector2Int (Mathf.RoundToInt (pos.x), Mathf.RoundToInt (pos.y));
+            if (coord.x >= 0 && coord.x < size && coord.y >= 0 && coord.y < size) {
+                dropletIndex = coord.y * size + coord.x;
             } else {
-                print ("Exit");
                 break;
             }
+
         }
 
+    }
+
+    struct Neighbour {
+        public int index;
+        public Vector2 dir;
+
+        public Neighbour (int index, Vector2 dir) {
+            this.index = index;
+            this.dir = dir;
+        }
     }
 
     struct DropletInfluence {
