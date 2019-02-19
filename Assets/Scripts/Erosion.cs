@@ -11,6 +11,7 @@ public class Erosion : MonoBehaviour {
     public float depositFactor = .1f;
     public float soilCarryCapacity = 1;
     public float acceleration = 1;
+    public float friction = .1f;
 
     System.Random prng;
 
@@ -79,9 +80,14 @@ public class Erosion : MonoBehaviour {
 
             int lowestNearbyNeighbourIndex = 0;
             float lowestNearbyHeight = float.MaxValue;
+            Vector2 deltaV = Vector2.zero;
 
             for (int i = 0; i < neighbours[dropletIndex].Count; i++) {
                 int neighbourIndex = neighbours[dropletIndex][i].index;
+                float neighbourHeight = map[neighbourIndex];
+                float delta = dropletHeight - neighbourHeight;
+                deltaV +=neighbours[dropletIndex][i].dir * delta;
+
                 if (map[neighbourIndex] < lowestNearbyHeight) {
                     lowestNearbyHeight = map[neighbourIndex];
                     lowestNearbyNeighbourIndex = i;
@@ -89,10 +95,17 @@ public class Erosion : MonoBehaviour {
             }
             float deltaHeight = dropletHeight - lowestNearbyHeight;
   
-            velocity += neighbours[dropletIndex][lowestNearbyNeighbourIndex].dir * deltaHeight * acceleration;
+            //velocity += neighbours[dropletIndex][lowestNearbyNeighbourIndex].dir * deltaHeight * acceleration;
+            velocity += deltaV.normalized * acceleration;
+            velocity -= velocity * friction;
 
             for (int i = 0; i < dropletInfluenceMap[dropletIndex].Count; i++) {
                 DropletInfluence pointUnderDroplet = dropletInfluenceMap[dropletIndex][i];
+
+                // Water is at local minimum
+                if (deltaHeight < 0) {
+
+                }
 
                 if (soilQuantity < 1) {
                     float absorbAmount = absorptionFactor * pointUnderDroplet.weight;
