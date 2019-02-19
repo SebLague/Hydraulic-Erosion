@@ -25,7 +25,8 @@ public class MeshGenerator : MonoBehaviour {
     [ContextMenu ("Erode")]
     public void Erode () {
         erosion = FindObjectOfType<Erosion> ();
-
+        erosion.Init(size);
+        
         for (int i = 0; i < erosionIterations; i++) {
             erosion.Erode (map);
         }

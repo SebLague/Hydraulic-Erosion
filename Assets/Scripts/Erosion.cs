@@ -110,11 +110,11 @@ public class Erosion : MonoBehaviour {
                 if (soilQuantity < 1) {
                     float absorbAmount = absorptionFactor * pointUnderDroplet.weight;
                     soilQuantity += absorbAmount;
-                    //map[pointUnderDroplet.index] -= absorbAmount;
+                    map[pointUnderDroplet.index] -= absorbAmount;
                 } else {
                     float depositAmount = depositFactor * pointUnderDroplet.weight;
                     soilQuantity -= depositAmount;
-                    //map[pointUnderDroplet.index] += depositAmount;
+                    map[pointUnderDroplet.index] += depositAmount;
                 }
             }
 
