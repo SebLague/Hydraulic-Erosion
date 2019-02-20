@@ -14,11 +14,12 @@ public class MeshGenerator : MonoBehaviour {
     float[] map;
 
     Erosion erosion;
-
+    public int numErosionIterationsPerFrame = 2;
     public int numErosionIterations = 0;
 
     void Start () {
         map = FindObjectOfType<HeightMapGenerator> ().Generate (mapSize);
+        erosion = FindObjectOfType<Erosion> ();
         GenerateMesh ();
     }
 
@@ -36,8 +37,9 @@ public class MeshGenerator : MonoBehaviour {
 
     void Update () {
         if (animateErosion) {
-            erosion = FindObjectOfType<Erosion> ();
-            erosion.Erode (map, mapSize);
+            for (int i = 0; i < numErosionIterationsPerFrame; i++) {
+                erosion.Erode (map, mapSize);
+            }
             GenerateMesh ();
             numErosionIterations++;
         }

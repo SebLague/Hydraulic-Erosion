@@ -19,6 +19,9 @@ public class Erosion : MonoBehaviour {
     public float gravity = 1;
     public int maxDropletLifetime = 30;
 
+    System.Random prng;
+    bool initialized;
+
     // Debug vars
     [Header ("Debug:")]
     public List<Vector3> debugPositions;
@@ -28,7 +31,11 @@ public class Erosion : MonoBehaviour {
 
     public void Erode (float[] nodes, int mapSize) {
         debugPositions = new List<Vector3> ();
-        var prng = new System.Random (seed);
+
+        if (!initialized) {
+            initialized = true;
+            prng = new System.Random (seed);
+        }
         var erosionBrush = new ErosionBrush (erosionRadius);
 
         // Create water droplet at random point on map
