@@ -12,7 +12,6 @@ public class MeshGenerator : MonoBehaviour {
     public bool showGizmos;
 
     float[] map;
-    
 
     Erosion erosion;
 
@@ -28,6 +27,7 @@ public class MeshGenerator : MonoBehaviour {
         for (int i = 0; i < erosionIterations; i++) {
             //erosion.Erode (map);
         }
+        erosion.Erode(map,mapSize);
         GenerateMesh ();
     }
 
@@ -71,7 +71,7 @@ public class MeshGenerator : MonoBehaviour {
     }
 
     Vector3 PointFromIndex (int i, float h = 0) {
-        int y = i/ mapSize;
+        int y = i / mapSize;
         int x = i - y * mapSize;
         Vector2 percent = new Vector2 (x / (mapSize - 1f), y / (mapSize - 1f));
         Vector3 pos = new Vector3 (percent.x * 2 - 1, 0, percent.y * 2 - 1) * scale;
@@ -79,24 +79,31 @@ public class MeshGenerator : MonoBehaviour {
         return pos;
     }
 
-    /* 
-    void OnDrawGizmos () {
-        if (erosion != null && erosion.debugPoints != null && showGizmos) {
-            Gizmos.color = Color.red;
-            for (int erosionIndex = 0; erosionIndex < erosion.debugPoints.Count; erosionIndex++) {
-                float h = .1f;
-                int i = erosion.debugPoints[erosionIndex];
-                var p1 = PointFromIndex(i,h);
+    Vector3 MeshPointFromMapPoint (Vector3 mapPoint) {
+        Vector2 percent = new Vector2 (mapPoint.x / (mapSize - 1f), mapPoint.z / (mapSize - 1f));
+        Vector3 pos = new Vector3 (percent.x * 2 - 1, 0, percent.y * 2 - 1) * scale;
+        pos += Vector3.up * mapPoint.y * elevationScale;
+        return pos;
+    }
 
-                float p = erosionIndex / (erosion.debugPoints.Count - 1f);
+    void OnDrawGizmos () {
+        if (erosion != null && erosion.debugPositions != null && showGizmos) {
+            Gizmos.color = Color.red;
+            for (int i = 0; i < erosion.debugPositions.Count; i++) {
+
+                var p1 = MeshPointFromMapPoint (erosion.debugPositions[i]);
+
+                float p = i / (erosion.debugPositions.Count - 1f);
                 float s = Mathf.Lerp (.2f, .05f, p);
                 Gizmos.DrawSphere (p1, s);
-                if (erosionIndex < erosion.debugPoints.Count-1) {
-                    Gizmos.DrawLine(p1,PointFromIndex(erosion.debugPoints[erosionIndex+1],h));
+
+                if (i < erosion.debugPositions.Count - 1) {
+                    float h = .1f;
+                    Gizmos.DrawLine (p1 + Vector3.up * h, MeshPointFromMapPoint (erosion.debugPositions[i + 1]) + Vector3.up * h);
                 }
             }
         }
 
     }
-    */
+
 }
