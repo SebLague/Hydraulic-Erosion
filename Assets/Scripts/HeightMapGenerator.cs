@@ -6,13 +6,12 @@ public class HeightMapGenerator : MonoBehaviour {
     public int seed;
     public bool randomizeSeed;
 
-    public int mapSize = 256;
     public int numOctaves = 4;
     public float persistence = .5f;
     public float lacunarity = 2;
     public float initialScale = 1;
 
-    public float[] Generate () {
+    public float[] Generate (int mapSize) {
         var map = new float[mapSize * mapSize];
         seed = (randomizeSeed) ? Random.Range (-10000, 10000) : seed;
         var prng = new System.Random (seed);

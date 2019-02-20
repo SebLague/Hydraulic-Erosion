@@ -11,8 +11,8 @@ public class MeshEditor : Editor
     public override void OnInspectorGUI() {
         DrawDefaultInspector();
 
-        if (GUILayout.Button("Mesh")) {
-            m.Run();
+        if (GUILayout.Button("Generate Mesh")) {
+            m.StartMeshGeneration();
         }
 
         if (GUILayout.Button("Erode")) {
