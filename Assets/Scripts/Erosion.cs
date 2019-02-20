@@ -17,6 +17,7 @@ public class Erosion : MonoBehaviour {
     [Range (0, 1)]
     public float evaporateSpeed = .1f;
     public float gravity = 1;
+    public int maxDropletLifetime = 30;
 
     // Debug vars
     public List<Vector3> debugPositions;
@@ -29,9 +30,8 @@ public class Erosion : MonoBehaviour {
         // Create water droplet at random point on map
         Vector2 randomPos = new Vector2 (prng.Next (0, mapSize - 1), prng.Next (0, mapSize - 1)) + Vector2.one * .5f; // place in middle of random cell
         WaterDroplet droplet = new WaterDroplet () { position = randomPos, waterVolume = 1, speed = 1 };
-        int lifetime = 100;
 
-        for (int i = 0; i < lifetime; i++) {
+        for (int lifetime = 0; lifetime < maxDropletLifetime; lifetime++) {
             Vector2Int dropletCoord = new Vector2Int ((int) droplet.position.x, (int) droplet.position.y);
             // Calculate direction of flow from the height difference of surrounding points
             var point = CalculateHeightAndGradient (nodes, mapSize, droplet.position);
@@ -76,10 +76,10 @@ public class Erosion : MonoBehaviour {
                     
                     Vector2 offset = positionOld - dropletCoord;
                     int nodeIndexNW = dropletCoord.y * mapSize + dropletCoord.x;
-                    nodes[nodeIndexNW] += amountToDeposit * (1 - dropletCoord.x) * (1 - dropletCoord.y);
-                    nodes[nodeIndexNW + 1] += amountToDeposit * (dropletCoord.x) * (1 - dropletCoord.y);
-                    nodes[nodeIndexNW + mapSize] += amountToDeposit * (1 - dropletCoord.x) * (dropletCoord.y);
-                    nodes[nodeIndexNW + mapSize + 1] += amountToDeposit * (dropletCoord.x) * (dropletCoord.y);
+                    nodes[nodeIndexNW] += amountToDeposit * (1 - offset.x) * (1 - offset.y);
+                    nodes[nodeIndexNW + 1] += amountToDeposit * (offset.x) * (1 - offset.y);
+                    nodes[nodeIndexNW + mapSize] += amountToDeposit * (1 - offset.x) * (offset.y);
+                    nodes[nodeIndexNW + mapSize + 1] += amountToDeposit * (offset.x) * (offset.y);
 
                 } else {
                     // Erode from the terrain a fraction of the droplet's current carry capacity.
