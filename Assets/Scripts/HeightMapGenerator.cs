@@ -21,9 +21,11 @@ public class HeightMapGenerator : MonoBehaviour {
             offsets[i] = new Vector2 (prng.Next (-1000, 1000), prng.Next (-1000, 1000));
         }
 
+        float minVal = float.MaxValue;
+        float maxValue = float.MinValue;
+
         for (int y = 0; y < mapSize; y++) {
             for (int x = 0; x < mapSize; x++) {
-
                 float noiseValue = 0;
                 float scale = initialScale;
                 float weight = 1;
@@ -34,7 +36,15 @@ public class HeightMapGenerator : MonoBehaviour {
                     scale *= lacunarity;
                 }
                 map[y*mapSize+x] = noiseValue;
+                minVal = Mathf.Min(noiseValue,minVal);
+                maxValue = Mathf.Max(noiseValue,maxValue);
             }
+        }
+
+        // Normalize
+        for (int i = 0; i < map.Length; i++)
+        {
+            map[i] = (map[i]-minVal)/(maxValue-minVal);
         }
 
         return map;
