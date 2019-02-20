@@ -17,6 +17,8 @@ public class MeshGenerator : MonoBehaviour {
     public int numErosionIterationsPerFrame = 2;
     public int numErosionIterations = 0;
 
+    Mesh mesh;
+
     void Start () {
         map = FindObjectOfType<HeightMapGenerator> ().Generate (mapSize);
         erosion = FindObjectOfType<Erosion> ();
@@ -74,10 +76,15 @@ public class MeshGenerator : MonoBehaviour {
             }
         }
 
-        Mesh mesh = new Mesh () {
-            vertices = verts,
-            triangles = triangles
-        };
+        if (mesh == null) {
+            mesh = new Mesh();
+        }
+        else {
+            mesh.Clear();
+        }
+
+        mesh.vertices = verts;
+        mesh.triangles = triangles;
         mesh.RecalculateNormals ();
 
         GetComponent<MeshFilter> ().mesh = mesh;

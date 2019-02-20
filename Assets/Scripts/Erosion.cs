@@ -20,6 +20,7 @@ public class Erosion : MonoBehaviour {
     public int maxDropletLifetime = 30;
 
     System.Random prng;
+    ErosionBrush erosionBrush;
     bool initialized;
 
     // Debug vars
@@ -30,13 +31,13 @@ public class Erosion : MonoBehaviour {
     public float d_deltaSediment;
 
     public void Erode (float[] nodes, int mapSize) {
-        debugPositions = new List<Vector3> ();
+        //debugPositions = new List<Vector3> ();
 
         if (!initialized) {
             initialized = true;
             prng = new System.Random (seed);
+            erosionBrush = new ErosionBrush (erosionRadius);
         }
-        var erosionBrush = new ErosionBrush (erosionRadius);
 
         // Create water droplet at random point on map
         Vector2 randomPos = new Vector2 (prng.Next (0, mapSize - 1), prng.Next (0, mapSize - 1)) + Vector2.one * .5f; // place in middle of random cell
@@ -57,7 +58,7 @@ public class Erosion : MonoBehaviour {
 
             Vector2 positionOld = droplet.position;
             droplet.position += droplet.direction;
-            debugPositions.Add (new Vector3 (positionOld.x, point.height, positionOld.y));
+            //debugPositions.Add (new Vector3 (positionOld.x, point.height, positionOld.y));
 
             // Stop simulating droplet if it has flowed over edge of map
             if (droplet.position.x < 0 || droplet.position.y < 0 || droplet.position.x >= mapSize - 1 || droplet.position.y >= mapSize - 1) {
