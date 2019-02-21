@@ -24,7 +24,7 @@ public class Erosion : MonoBehaviour {
     bool initialized;
 
     // Indices and weights of erosion brush precomputed for every node
-    Vector2Int[][] erosionBrushIndices;
+    int[][] erosionBrushIndices;
     float[][] erosionBrushWeights;
 
     // Debug vars
@@ -104,8 +104,7 @@ public class Erosion : MonoBehaviour {
 
                 // Use erosion brush to erode from all nodes inside radius
                 for (int brushPointIndex = 0; brushPointIndex < erosionBrushIndices[dropletIndex].Length; brushPointIndex++) {
-                    Vector2Int erodeCoord = erosionBrushIndices[dropletIndex][brushPointIndex];
-                    int nodeIndex = erodeCoord.y * mapSize + erodeCoord.x;
+                    int nodeIndex = erosionBrushIndices[dropletIndex][brushPointIndex];
                     // Don't erode below zero (to avoid very deep erosion from occuring)
                     float sediment = Mathf.Min (nodes[nodeIndex], amountToErode * erosionBrushWeights[dropletIndex][brushPointIndex]);
                     nodes[nodeIndex] -= sediment;
@@ -160,43 +159,43 @@ public class Erosion : MonoBehaviour {
         public float waterVolume;
     }
 
-
     void InitializeBrushIndices (int mapSize, int radius) {
-        erosionBrushIndices = new Vector2Int[mapSize * mapSize][];
+        erosionBrushIndices = new int[mapSize * mapSize][];
         erosionBrushWeights = new float[mapSize * mapSize][];
-        List<Vector2Int> indices = new List<Vector2Int> ();
-        List<float> weights = new List<float> ();
+
+        int[] indices = new int[radius * radius * 4];
+        float[] weights = new float[radius * radius * 4];
 
         for (int i = 0; i < erosionBrushIndices.GetLength (0); i++) {
-            indices.Clear ();
-            weights.Clear ();
             Vector2Int centre = new Vector2Int (i % mapSize, i / mapSize);
             float weightSum = 0;
+            int addIndex = 0;
 
             for (int y = -radius; y <= radius; y++) {
                 for (int x = -radius; x <= radius; x++) {
                     float sqrDst = x * x + y * y;
                     if (sqrDst < radius * radius) {
-                        Vector2Int index = new Vector2Int (x, y) + centre;
-                        if (index.x >= 0 && index.x < mapSize && index.y >= 0 && index.y < mapSize) {
-                            indices.Add (index);
+                        Vector2Int coord = new Vector2Int (x, y) + centre;
+
+                        if (coord.x >= 0 && coord.x < mapSize && coord.y >= 0 && coord.y < mapSize) {
                             float weight = 1 - Mathf.Sqrt (sqrDst) / radius;
                             weightSum += weight;
-                            weights.Add(weight);
-
+                            weights[addIndex] = weight;
+                            indices[addIndex] = coord.y * mapSize + coord.x;
+                            addIndex++;
                         }
                     }
                 }
             }
 
-            erosionBrushIndices[i] = new Vector2Int[indices.Count];
-            erosionBrushWeights[i] = new float[indices.Count];
-            for (int j = 0; j < indices.Count; j++)
-            {
+            int numEntries = addIndex;
+            erosionBrushIndices[i] = new int[numEntries];
+            erosionBrushWeights[i] = new float[numEntries];
+            
+            for (int j = 0; j < numEntries; j++) {
                 erosionBrushIndices[i][j] = indices[j];
-                erosionBrushWeights[i][j] = weights[j]/weightSum;
+                erosionBrushWeights[i][j] = weights[j] / weightSum;
             }
-
         }
 
     }
