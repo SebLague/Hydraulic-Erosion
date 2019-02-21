@@ -1,11 +1,9 @@
-﻿// precomp brushes
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Erosion : MonoBehaviour {
 
     public int seed;
+    [Range (2, 8)]
     public int erosionRadius = 3;
     [Range (0, 1)]
     public float inertia = .05f; // At zero, water will instantly change direction to flow downhill. At 1, water will never change direction. 
@@ -28,10 +26,18 @@ public class Erosion : MonoBehaviour {
     float[][] erosionBrushWeights;
     System.Random prng;
 
+    int currentSeed;
+    int currentErosionRadius;
+
     void Initialize (int mapSize) {
-        if (prng == null) {
+        if (prng == null || currentSeed != seed) {
             prng = new System.Random (seed);
+            currentSeed = seed;
+        }
+
+        if (erosionBrushIndices == null || currentErosionRadius != erosionRadius) {
             InitializeBrushIndices (mapSize, erosionRadius);
+            currentErosionRadius = erosionRadius;
         }
     }
 
@@ -46,22 +52,20 @@ public class Erosion : MonoBehaviour {
             for (int lifetime = 0; lifetime < maxDropletLifetime; lifetime++) {
                 int dropletCoordX = (int) droplet.position.x;
                 int dropletCoordY = (int) droplet.position.y;
-
                 int dropletIndex = dropletCoordY * mapSize + dropletCoordX;
 
-                // Calculate direction of flow from the height difference of surrounding points
+                // Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
+                float offsetX = droplet.position.x - dropletCoordX;
+                float offsetY = droplet.position.y - dropletCoordY;
+
+                // Calculate direction of flow from the height difference of surrounding points and update droplet's position accordingly
                 HeightAndGradient heightAndGradient = CalculateHeightAndGradient (nodes, mapSize, droplet.position);
                 droplet.direction = (droplet.direction * inertia - heightAndGradient.gradient * (1 - inertia)).normalized;
-
-                // Stop simulating droplet if it's not moving
-                if (droplet.direction == Vector2.zero) {
-                    break;
-                }
-
-                Vector2 positionOld = droplet.position;
-                droplet.position += droplet.direction;
-                // Stop simulating droplet if it has flowed over edge of map
-                if (droplet.position.x < 0 || droplet.position.y < 0 || droplet.position.x >= mapSize - 1 || droplet.position.y >= mapSize - 1) {
+                Vector2 newPos = droplet.position + droplet.direction;
+                droplet.position = newPos;
+                
+                // Stop simulating droplet if it's not moving or has flowed over edge of map
+                if (droplet.direction == Vector2.zero || newPos.x < 0 || newPos.y < 0 || newPos.x >= mapSize - 1 || newPos.y >= mapSize - 1) {
                     break;
                 }
 
@@ -79,16 +83,12 @@ public class Erosion : MonoBehaviour {
                     if (deltaHeight > 0) {
                         amountToDeposit = Mathf.Min (deltaHeight, droplet.sediment);
                     }
-
                     // Add the sediment to the four nodes of the current cell using bilinear interpolation
                     // Deposition is not distributed over a radius (like erosion) so that it can fill small pits
-                    float offsetX = positionOld.x - dropletCoordX;
-                    float offsetY = positionOld.y - dropletCoordY;
                     nodes[dropletIndex] += amountToDeposit * (1 - offsetX) * (1 - offsetY);
                     nodes[dropletIndex + 1] += amountToDeposit * (offsetX) * (1 - offsetY);
                     nodes[dropletIndex + mapSize] += amountToDeposit * (1 - offsetX) * (offsetY);
                     nodes[dropletIndex + mapSize + 1] += amountToDeposit * (offsetX) * (offsetY);
-
                     droplet.sediment -= amountToDeposit;
                 } else {
                     // Erode from the terrain a fraction of the droplet's current carry capacity.
@@ -105,15 +105,14 @@ public class Erosion : MonoBehaviour {
                     }
                 }
 
+                // Update droplet's speed and water content
                 droplet.speed = Mathf.Sqrt (droplet.speed * droplet.speed + deltaHeight * gravity);
                 droplet.waterVolume *= (1 - evaporateSpeed);
-
             }
         }
     }
 
     HeightAndGradient CalculateHeightAndGradient (float[] nodes, int mapSize, Vector2 pos) {
-
         int coordX = (int) pos.x;
         int coordY = (int) pos.y;
         // Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
@@ -136,20 +135,6 @@ public class Erosion : MonoBehaviour {
         float height = heightNW * (1 - x) * (1 - y) + heightNE * x * (1 - y) + heightSW * (1 - x) * y + heightSE * x * y;
 
         return new HeightAndGradient () { height = height, gradient = flowDirection };
-    }
-
-    struct HeightAndGradient {
-        public float height;
-        public Vector2 gradient;
-    }
-
-    struct WaterDroplet {
-        public Vector2 velocity;
-        public Vector2 position;
-        public Vector2 direction;
-        public float speed;
-        public float sediment;
-        public float waterVolume;
     }
 
     void InitializeBrushIndices (int mapSize, int radius) {
@@ -190,5 +175,19 @@ public class Erosion : MonoBehaviour {
                 erosionBrushWeights[i][j] = weights[j] / weightSum;
             }
         }
+    }
+
+    struct HeightAndGradient {
+        public float height;
+        public Vector2 gradient;
+    }
+
+    struct WaterDroplet {
+        public Vector2 velocity;
+        public Vector2 position;
+        public Vector2 direction;
+        public float speed;
+        public float sediment;
+        public float waterVolume;
     }
 }

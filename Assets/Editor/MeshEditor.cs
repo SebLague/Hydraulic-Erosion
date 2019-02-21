@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(MeshGenerator))]
@@ -15,12 +13,8 @@ public class MeshEditor : Editor
             m.StartMeshGeneration();
         }
 
-        if (GUILayout.Button("Erode")) {
+        if (GUILayout.Button("Erode (" + m.numErosionIterations + " iterations)")) {
             m.Erode();
-        }
-
-        if (GUILayout.Button("Erode Speed Test")) {
-            m.SpeedTest();
         }
     }
 

@@ -1,30 +1,31 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MeshGenerator : MonoBehaviour {
 
+    [Header ("Mesh Settings")]
+    [Range (2, 256)]
     public int mapSize = 256;
     public float scale = 1;
     public float elevationScale = 1;
+    public Material material;
 
+    [Header ("Erosion Settings")]
+    public int numErosionIterations = 50000;
+
+    [Header ("Animation Settings")]
     public bool animateErosion;
-    public bool showGizmos;
+    public int numErosionIterationsPerFrame = 2;
 
     float[] map;
-
-    Erosion erosion;
-    public int numErosionIterationsPerFrame = 2;
-    public int numErosionIterations = 0;
-
-    public int timeTestIterations = 100;
-
     Mesh mesh;
+    Erosion erosion;
+
+    MeshRenderer meshRenderer;
+    MeshFilter meshFilter;
 
     void Start () {
-        map = FindObjectOfType<HeightMapGenerator> ().Generate (mapSize);
+        StartMeshGeneration ();
         erosion = FindObjectOfType<Erosion> ();
-        GenerateMesh ();
     }
 
     public void StartMeshGeneration () {
@@ -33,39 +34,24 @@ public class MeshGenerator : MonoBehaviour {
     }
 
     public void Erode () {
+        if (map == null || map.Length != mapSize * mapSize) {
+            map = FindObjectOfType<HeightMapGenerator> ().Generate (mapSize);
+        }
         erosion = FindObjectOfType<Erosion> ();
-        //erosion.Init(mapSize);
-        erosion.Erode (map, mapSize);
+        erosion.Erode (map, mapSize, numErosionIterations);
         GenerateMesh ();
-    }
-
-    public void SpeedTest () {
-        map = FindObjectOfType<HeightMapGenerator> ().Generate (mapSize);
-        erosion = FindObjectOfType<Erosion> ();
-
-        var sw = new System.Diagnostics.Stopwatch ();
-
-        sw.Start ();
-        erosion.Erode (map, mapSize, timeTestIterations);
-
-        sw.Stop ();
-        GenerateMesh ();
-        print ("Iterations: " + timeTestIterations + " completed in " + sw.ElapsedMilliseconds + "ms.");
     }
 
     void Update () {
         if (animateErosion) {
             for (int i = 0; i < numErosionIterationsPerFrame; i++) {
                 erosion.Erode (map, mapSize);
-                numErosionIterations++;
             }
             GenerateMesh ();
-
         }
     }
 
     void GenerateMesh () {
-
         Vector3[] verts = new Vector3[mapSize * mapSize];
         int[] triangles = new int[(mapSize - 1) * (mapSize - 1) * 6];
         int t = 0;
@@ -79,6 +65,7 @@ public class MeshGenerator : MonoBehaviour {
                 pos += Vector3.up * map[i] * elevationScale;
                 verts[i] = pos;
 
+                // Construct triangles
                 if (x != mapSize - 1 && y != mapSize - 1) {
 
                     triangles[t + 0] = i + mapSize;
@@ -103,24 +90,32 @@ public class MeshGenerator : MonoBehaviour {
         mesh.triangles = triangles;
         mesh.RecalculateNormals ();
 
-        GetComponent<MeshFilter> ().mesh = mesh;
-
+        AssignMeshComponents ();
+        meshFilter.sharedMesh = mesh;
+        meshRenderer.sharedMaterial = material;
+        material.SetFloat("_MaxHeight", elevationScale);
     }
 
-    Vector3 PointFromIndex (int i, float h = 0) {
-        int y = i / mapSize;
-        int x = i - y * mapSize;
-        Vector2 percent = new Vector2 (x / (mapSize - 1f), y / (mapSize - 1f));
-        Vector3 pos = new Vector3 (percent.x * 2 - 1, 0, percent.y * 2 - 1) * scale;
-        pos += Vector3.up * (map[i] * elevationScale + h);
-        return pos;
-    }
+    void AssignMeshComponents () {
+        // Find/creator mesh holder object in children
+        string meshHolderName = "Mesh Holder";
+        Transform meshHolder = transform.Find (meshHolderName);
+        if (meshHolder == null) {
+            meshHolder = new GameObject (meshHolderName).transform;
+            meshHolder.transform.parent = transform;
+            meshHolder.transform.localPosition = Vector3.zero;
+            meshHolder.transform.localRotation = Quaternion.identity;
+        }
 
-    Vector3 MeshPointFromMapPoint (Vector3 mapPoint) {
-        Vector2 percent = new Vector2 (mapPoint.x / (mapSize - 1f), mapPoint.z / (mapSize - 1f));
-        Vector3 pos = new Vector3 (percent.x * 2 - 1, 0, percent.y * 2 - 1) * scale;
-        pos += Vector3.up * mapPoint.y * elevationScale;
-        return pos;
-    }
+        // Ensure mesh renderer and filter components are assigned
+        if (!meshHolder.gameObject.GetComponent<MeshFilter> ()) {
+            meshHolder.gameObject.AddComponent<MeshFilter> ();
+        }
+        if (!meshHolder.GetComponent<MeshRenderer> ()) {
+            meshHolder.gameObject.AddComponent<MeshRenderer> ();
+        }
 
+        meshRenderer = meshHolder.GetComponent<MeshRenderer> ();
+        meshFilter = meshHolder.GetComponent<MeshFilter> ();
+    }
 }
