@@ -17,6 +17,8 @@ public class MeshGenerator : MonoBehaviour {
     public int numErosionIterationsPerFrame = 2;
     public int numErosionIterations = 0;
 
+    public int timeTestIterations = 100;
+
     Mesh mesh;
 
     void Start () {
@@ -37,13 +39,29 @@ public class MeshGenerator : MonoBehaviour {
         GenerateMesh ();
     }
 
+    public void SpeedTest () {
+        map = FindObjectOfType<HeightMapGenerator> ().Generate (mapSize);
+        erosion = FindObjectOfType<Erosion> ();
+
+        var sw = new System.Diagnostics.Stopwatch ();
+
+        sw.Start ();
+        for (int i = 0; i < timeTestIterations; i++) {
+            erosion.Erode (map, mapSize);
+        }
+        sw.Stop ();
+        GenerateMesh ();
+        print("Iterations: " + timeTestIterations + " completed in " + sw.ElapsedMilliseconds + "ms.");
+    }
+
     void Update () {
         if (animateErosion) {
             for (int i = 0; i < numErosionIterationsPerFrame; i++) {
                 erosion.Erode (map, mapSize);
+                numErosionIterations++;
             }
             GenerateMesh ();
-            numErosionIterations++;
+
         }
     }
 
@@ -77,10 +95,9 @@ public class MeshGenerator : MonoBehaviour {
         }
 
         if (mesh == null) {
-            mesh = new Mesh();
-        }
-        else {
-            mesh.Clear();
+            mesh = new Mesh ();
+        } else {
+            mesh.Clear ();
         }
 
         mesh.vertices = verts;

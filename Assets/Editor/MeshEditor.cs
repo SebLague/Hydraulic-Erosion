@@ -18,6 +18,10 @@ public class MeshEditor : Editor
         if (GUILayout.Button("Erode")) {
             m.Erode();
         }
+
+        if (GUILayout.Button("Erode Speed Test")) {
+            m.SpeedTest();
+        }
     }
 
     void OnEnable() {
