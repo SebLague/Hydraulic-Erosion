@@ -44,8 +44,10 @@ public class Erosion : MonoBehaviour {
             WaterDroplet droplet = new WaterDroplet () { position = randomPos, waterVolume = initialWaterVolume, speed = initialSpeed };
 
             for (int lifetime = 0; lifetime < maxDropletLifetime; lifetime++) {
-                Vector2Int dropletCoord = new Vector2Int ((int) droplet.position.x, (int) droplet.position.y);
-                int dropletIndex = dropletCoord.y * mapSize + dropletCoord.x;
+                int dropletCoordX = (int) droplet.position.x;
+                int dropletCoordY = (int) droplet.position.y;
+
+                int dropletIndex = dropletCoordY * mapSize + dropletCoordX;
 
                 // Calculate direction of flow from the height difference of surrounding points
                 HeightAndGradient heightAndGradient = CalculateHeightAndGradient (nodes, mapSize, droplet.position);
@@ -80,12 +82,12 @@ public class Erosion : MonoBehaviour {
 
                     // Add the sediment to the four nodes of the current cell using bilinear interpolation
                     // Deposition is not distributed over a radius (like erosion) so that it can fill small pits
-                    Vector2 offset = positionOld - dropletCoord;
-                    int nodeIndexNW = dropletCoord.y * mapSize + dropletCoord.x;
-                    nodes[nodeIndexNW] += amountToDeposit * (1 - offset.x) * (1 - offset.y);
-                    nodes[nodeIndexNW + 1] += amountToDeposit * (offset.x) * (1 - offset.y);
-                    nodes[nodeIndexNW + mapSize] += amountToDeposit * (1 - offset.x) * (offset.y);
-                    nodes[nodeIndexNW + mapSize + 1] += amountToDeposit * (offset.x) * (offset.y);
+                    float offsetX = positionOld.x - dropletCoordX;
+                    float offsetY = positionOld.y - dropletCoordY;
+                    nodes[dropletIndex] += amountToDeposit * (1 - offsetX) * (1 - offsetY);
+                    nodes[dropletIndex + 1] += amountToDeposit * (offsetX) * (1 - offsetY);
+                    nodes[dropletIndex + mapSize] += amountToDeposit * (1 - offsetX) * (offsetY);
+                    nodes[dropletIndex + mapSize + 1] += amountToDeposit * (offsetX) * (offsetY);
 
                     droplet.sediment -= amountToDeposit;
                 } else {
