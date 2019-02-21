@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿// precomp brushes
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,8 +21,11 @@ public class Erosion : MonoBehaviour {
     public int maxDropletLifetime = 30;
 
     System.Random prng;
-    ErosionBrush erosionBrush;
     bool initialized;
+
+    // Indices and weights of erosion brush precomputed for every node
+    Vector2Int[][] erosionBrushIndices;
+    float[][] erosionBrushWeights;
 
     // Debug vars
     [Header ("Debug:")]
@@ -33,10 +37,10 @@ public class Erosion : MonoBehaviour {
     public void Erode (float[] nodes, int mapSize) {
         //debugPositions = new List<Vector3> ();
 
-        if (!initialized) {
+        if (!initialized || prng == null) {
             initialized = true;
             prng = new System.Random (seed);
-            erosionBrush = new ErosionBrush (erosionRadius);
+            InitializeBrushIndices (mapSize, erosionRadius);
         }
 
         // Create water droplet at random point on map
@@ -45,6 +49,7 @@ public class Erosion : MonoBehaviour {
 
         for (int lifetime = 0; lifetime < maxDropletLifetime; lifetime++) {
             Vector2Int dropletCoord = new Vector2Int ((int) droplet.position.x, (int) droplet.position.y);
+            int dropletIndex = dropletCoord.y * mapSize + dropletCoord.x;
             // Calculate direction of flow from the height difference of surrounding points
             var point = CalculateHeightAndGradient (nodes, mapSize, droplet.position);
 
@@ -98,16 +103,14 @@ public class Erosion : MonoBehaviour {
                 float amountToErode = Mathf.Min ((sedimentCapacity - droplet.sediment) * erodeSpeed, -deltaHeight);
 
                 // Use erosion brush to erode from all nodes inside radius
-                for (int brushPointIndex = 0; brushPointIndex < erosionBrush.offsets.Length; brushPointIndex++) {
-                    Vector2Int erodeCoord = dropletCoord + erosionBrush.offsets[brushPointIndex];
-                    if (erodeCoord.x >= 0 && erodeCoord.x < mapSize && erodeCoord.y >= 0 && erodeCoord.y < mapSize) {
-                        int nodeIndex = erodeCoord.y * mapSize + erodeCoord.x;
-                        // Don't erode below zero (to avoid very deep erosion from occuring)
-                        float sediment = Mathf.Min (nodes[nodeIndex], amountToErode * erosionBrush.weights[brushPointIndex]);
-                        nodes[nodeIndex] -= sediment;
-                        droplet.sediment += sediment;
-                        d_amountEroded += sediment;
-                    }
+                for (int brushPointIndex = 0; brushPointIndex < erosionBrushIndices[dropletIndex].Length; brushPointIndex++) {
+                    Vector2Int erodeCoord = erosionBrushIndices[dropletIndex][brushPointIndex];
+                    int nodeIndex = erodeCoord.y * mapSize + erodeCoord.x;
+                    // Don't erode below zero (to avoid very deep erosion from occuring)
+                    float sediment = Mathf.Min (nodes[nodeIndex], amountToErode * erosionBrushWeights[dropletIndex][brushPointIndex]);
+                    nodes[nodeIndex] -= sediment;
+                    droplet.sediment += sediment;
+                    d_amountEroded += sediment;
                 }
             }
 
@@ -157,40 +160,44 @@ public class Erosion : MonoBehaviour {
         public float waterVolume;
     }
 
-    struct ErosionBrush {
-        // x,y coords of each point inside the radius of the brush
-        public readonly Vector2Int[] offsets;
-        // weight of the brush at each point (largest at centre; total sums to 1)
-        public readonly float[] weights;
 
-        public ErosionBrush (int radius) {
-            var weightsList = new List<float> ();
-            var offsetsList = new List<Vector2Int> ();
+    void InitializeBrushIndices (int mapSize, int radius) {
+        erosionBrushIndices = new Vector2Int[mapSize * mapSize][];
+        erosionBrushWeights = new float[mapSize * mapSize][];
+        List<Vector2Int> indices = new List<Vector2Int> ();
+        List<float> weights = new List<float> ();
+
+        for (int i = 0; i < erosionBrushIndices.GetLength (0); i++) {
+            indices.Clear ();
+            weights.Clear ();
+            Vector2Int centre = new Vector2Int (i % mapSize, i / mapSize);
             float weightSum = 0;
-
-            radius += 1; // increase radius by 1 because points on radius have a weight of 0 and so are discarded
 
             for (int y = -radius; y <= radius; y++) {
                 for (int x = -radius; x <= radius; x++) {
                     float sqrDst = x * x + y * y;
                     if (sqrDst < radius * radius) {
-                        float weight = 1 - Mathf.Sqrt (sqrDst) / radius;
-                        weightSum += weight;
+                        Vector2Int index = new Vector2Int (x, y) + centre;
+                        if (index.x >= 0 && index.x < mapSize && index.y >= 0 && index.y < mapSize) {
+                            indices.Add (index);
+                            float weight = 1 - Mathf.Sqrt (sqrDst) / radius;
+                            weightSum += weight;
+                            weights.Add(weight);
 
-                        offsetsList.Add (new Vector2Int (x, y));
-                        weightsList.Add (weight);
+                        }
                     }
                 }
             }
 
-            int numPoints = weightsList.Count;
-            weights = new float[numPoints];
-            offsets = new Vector2Int[numPoints];
-
-            for (int i = 0; i < numPoints; i++) {
-                weights[i] = weightsList[i] / weightSum;
-                offsets[i] = offsetsList[i];
+            erosionBrushIndices[i] = new Vector2Int[indices.Count];
+            erosionBrushWeights[i] = new float[indices.Count];
+            for (int j = 0; j < indices.Count; j++)
+            {
+                erosionBrushIndices[i][j] = indices[j];
+                erosionBrushWeights[i][j] = weights[j]/weightSum;
             }
+
         }
+
     }
 }
