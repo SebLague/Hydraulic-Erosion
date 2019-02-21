@@ -4,9 +4,8 @@
     {
         _GrassColour ("Grass Colour", Color) = (0,1,0,1)
         _RockColour ("Rock Colour", Color) = (1,1,1,1)
-        _GrassFlatnessThreshold ("Grass Flatness Threshold", Range(0,1)) = .5
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Metallic ("Metallic", Range(0,1)) = 0.0
+        _GrassSlopeThreshold ("Grass Slope Threshold", Range(0,1)) = .5
+        _GrassBlendAmount ("Grass Blend Amount", Range(0,1)) = .5
     }
     SubShader
     {
@@ -27,30 +26,22 @@
         };
 
         half _MaxHeight;
-        half _GrassFlatnessThreshold;
-        half _Glossiness;
-        half _Metallic;
+        half _GrassSlopeThreshold;
+        half _GrassBlendAmount;
+
         fixed4 _GrassColour;
         fixed4 _RockColour;
 
-
+        float inverseLerp(float a, float b, float t) {
+            return saturate((t-a)/(b-a));
+        }
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
-            float flatness = IN.worldNormal.y;
-            fixed4 c = fixed4(0,0,0,0);
-            if (_GrassFlatnessThreshold < flatness) {
-                c = _GrassColour;
-            }
-            else {
-                c = _RockColour;
-            }
-            
-            o.Albedo = c.rgb;
-            // Metallic and smoothness come from slider variables
-            o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
-            o.Alpha = c.a;
+            float slope = 1-IN.worldNormal.y; // slope = 0 when terrain is completely flat
+            float grassWeight = 1-inverseLerp(_GrassSlopeThreshold * (1-_GrassBlendAmount), _GrassSlopeThreshold, slope);
+        
+            o.Albedo = _GrassColour * grassWeight + _RockColour * (1-grassWeight);
         }
         ENDCG
     }
