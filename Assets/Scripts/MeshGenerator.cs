@@ -46,12 +46,11 @@ public class MeshGenerator : MonoBehaviour {
         var sw = new System.Diagnostics.Stopwatch ();
 
         sw.Start ();
-        for (int i = 0; i < timeTestIterations; i++) {
-            erosion.Erode (map, mapSize);
-        }
+        erosion.Erode (map, mapSize, timeTestIterations);
+
         sw.Stop ();
         GenerateMesh ();
-        print("Iterations: " + timeTestIterations + " completed in " + sw.ElapsedMilliseconds + "ms.");
+        print ("Iterations: " + timeTestIterations + " completed in " + sw.ElapsedMilliseconds + "ms.");
     }
 
     void Update () {
@@ -122,26 +121,6 @@ public class MeshGenerator : MonoBehaviour {
         Vector3 pos = new Vector3 (percent.x * 2 - 1, 0, percent.y * 2 - 1) * scale;
         pos += Vector3.up * mapPoint.y * elevationScale;
         return pos;
-    }
-
-    void OnDrawGizmos () {
-        if (erosion != null && erosion.debugPositions != null && showGizmos) {
-            Gizmos.color = Color.red;
-            for (int i = 0; i < erosion.debugPositions.Count; i++) {
-
-                var p1 = MeshPointFromMapPoint (erosion.debugPositions[i]);
-
-                float p = i / (erosion.debugPositions.Count - 1f);
-                float s = Mathf.Lerp (.2f, .05f, p);
-                Gizmos.DrawSphere (p1, s);
-
-                if (i < erosion.debugPositions.Count - 1) {
-                    float h = .1f;
-                    Gizmos.DrawLine (p1 + Vector3.up * h, MeshPointFromMapPoint (erosion.debugPositions[i + 1]) + Vector3.up * h);
-                }
-            }
-        }
-
     }
 
 }
