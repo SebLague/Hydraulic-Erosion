@@ -4,10 +4,10 @@ public class HeightMapGenerator : MonoBehaviour {
     public int seed;
     public bool randomizeSeed;
 
-    public int numOctaves = 4;
+    public int numOctaves = 7;
     public float persistence = .5f;
     public float lacunarity = 2;
-    public float initialScale = 1;
+    public float initialScale = 2;
 
     public float[] Generate (int mapSize) {
         var map = new float[mapSize * mapSize];
@@ -19,7 +19,7 @@ public class HeightMapGenerator : MonoBehaviour {
             offsets[i] = new Vector2 (prng.Next (-1000, 1000), prng.Next (-1000, 1000));
         }
 
-        float minVal = float.MaxValue;
+        float minValue = float.MaxValue;
         float maxValue = float.MinValue;
 
         for (int y = 0; y < mapSize; y++) {
@@ -28,21 +28,22 @@ public class HeightMapGenerator : MonoBehaviour {
                 float scale = initialScale;
                 float weight = 1;
                 for (int i = 0; i < numOctaves; i++) {
-                    Vector2 p = offsets[i] + new Vector2(x/(float)mapSize,y/(float)mapSize) * scale;
-                    noiseValue += Mathf.PerlinNoise(p.x,p.y) * weight;
+                    Vector2 p = offsets[i] + new Vector2 (x / (float) mapSize, y / (float) mapSize) * scale;
+                    noiseValue += Mathf.PerlinNoise (p.x, p.y) * weight;
                     weight *= persistence;
                     scale *= lacunarity;
                 }
-                map[y*mapSize+x] = noiseValue;
-                minVal = Mathf.Min(noiseValue,minVal);
-                maxValue = Mathf.Max(noiseValue,maxValue);
+                map[y * mapSize + x] = noiseValue;
+                minValue = Mathf.Min (noiseValue, minValue);
+                maxValue = Mathf.Max (noiseValue, maxValue);
             }
         }
 
         // Normalize
-        for (int i = 0; i < map.Length; i++)
-        {
-            map[i] = (map[i]-minVal)/(maxValue-minVal);
+        if (maxValue != minValue) {
+            for (int i = 0; i < map.Length; i++) {
+                map[i] = (map[i] - minValue) / (maxValue - minValue);
+            }
         }
 
         return map;

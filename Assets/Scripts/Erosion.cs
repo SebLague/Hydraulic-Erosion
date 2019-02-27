@@ -10,12 +10,12 @@ public class Erosion : MonoBehaviour {
     public float sedimentCapacityFactor = 4; // Multiplier for how much sediment a droplet can carry
     public float minSedimentCapacity = .01f; // Used to prevent carry capacity getting too close to zero on flatter terrain
     [Range (0, 1)]
-    public float erodeSpeed = .1f;
+    public float erodeSpeed = .3f;
     [Range (0, 1)]
-    public float depositSpeed = .1f;
+    public float depositSpeed = .3f;
     [Range (0, 1)]
-    public float evaporateSpeed = .1f;
-    public float gravity = 1;
+    public float evaporateSpeed = .01f;
+    public float gravity = 4;
     public int maxDropletLifetime = 30;
 
     public float initialWaterVolume = 1;
@@ -30,8 +30,8 @@ public class Erosion : MonoBehaviour {
     int currentErosionRadius;
 
     // Initialization creates a System.Random object and precomputes indices and weights of erosion brush
-    void Initialize (int mapSize) {
-        if (prng == null || currentSeed != seed) {
+    void Initialize (int mapSize, bool resetSeed) {
+        if (resetSeed || prng == null || currentSeed != seed) {
             prng = new System.Random (seed);
             currentSeed = seed;
         }
@@ -42,11 +42,10 @@ public class Erosion : MonoBehaviour {
         }
     }
 
-    public void Erode (float[] map, int mapSize, int numIterations = 1) {
-        Initialize (mapSize);
+    public void Erode (float[] map, int mapSize, int numIterations = 1, bool resetSeed = false) {
+        Initialize (mapSize, resetSeed);
 
         for (int iteration = 0; iteration < numIterations; iteration++) {
-
             // Create water droplet at random point on map
             float posX = prng.Next (0, mapSize - 1);
             float posY = prng.Next (0, mapSize - 1);
@@ -72,9 +71,10 @@ public class Erosion : MonoBehaviour {
                 dirY = (dirY * inertia - heightAndGradient.gradientY * (1 - inertia));
                 // Normalize direction
                 float len = Mathf.Sqrt (dirX * dirX + dirY * dirY);
-                dirX /= len;
-                dirY /= len;
-
+                if (len != 0) {
+                    dirX /= len;
+                    dirY /= len;
+                }
                 posX += dirX;
                 posY += dirY;
 
@@ -99,9 +99,9 @@ public class Erosion : MonoBehaviour {
                     // Add the sediment to the four nodes of the current cell using bilinear interpolation
                     // Deposition is not distributed over a radius (like erosion) so that it can fill small pits
                     map[dropletIndex] += amountToDeposit * (1 - cellOffsetX) * (1 - cellOffsetY);
-                    map[dropletIndex + 1] += amountToDeposit * (cellOffsetX) * (1 - cellOffsetY);
-                    map[dropletIndex + mapSize] += amountToDeposit * (1 - cellOffsetX) * (cellOffsetY);
-                    map[dropletIndex + mapSize + 1] += amountToDeposit * (cellOffsetX) * (cellOffsetY);
+                    map[dropletIndex + 1] += amountToDeposit * cellOffsetX * (1 - cellOffsetY);
+                    map[dropletIndex + mapSize] += amountToDeposit * (1 - cellOffsetX) * cellOffsetY;
+                    map[dropletIndex + mapSize + 1] += amountToDeposit * cellOffsetX * cellOffsetY;
 
                 } else {
                     // Erode a fraction of the droplet's current carry capacity.

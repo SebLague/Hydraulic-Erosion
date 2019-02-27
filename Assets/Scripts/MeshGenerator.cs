@@ -3,10 +3,10 @@
 public class MeshGenerator : MonoBehaviour {
 
     [Header ("Mesh Settings")]
-    [Range (2, 256)]
-    public int mapSize = 256;
-    public float scale = 1;
-    public float elevationScale = 1;
+    [Range (2, 255)]
+    public int mapSize = 255;
+    public float scale = 20;
+    public float elevationScale = 10;
     public Material material;
 
     [Header ("Erosion Settings")]
@@ -14,7 +14,9 @@ public class MeshGenerator : MonoBehaviour {
 
     [Header ("Animation Settings")]
     public bool animateErosion;
-    public int numErosionIterationsPerFrame = 2;
+    public int iterationsPerFrame = 100;
+    public bool showNumIterations;
+    public int numAnimatedErosionIterations { get; private set; }
 
     float[] map;
     Mesh mesh;
@@ -26,6 +28,7 @@ public class MeshGenerator : MonoBehaviour {
     void Start () {
         StartMeshGeneration ();
         erosion = FindObjectOfType<Erosion> ();
+        Application.runInBackground = true;
     }
 
     public void StartMeshGeneration () {
@@ -34,19 +37,18 @@ public class MeshGenerator : MonoBehaviour {
     }
 
     public void Erode () {
-        if (map == null || map.Length != mapSize * mapSize) {
-            map = FindObjectOfType<HeightMapGenerator> ().Generate (mapSize);
-        }
+        map = FindObjectOfType<HeightMapGenerator> ().Generate (mapSize);
         erosion = FindObjectOfType<Erosion> ();
-        erosion.Erode (map, mapSize, numErosionIterations);
+        erosion.Erode (map, mapSize, numErosionIterations, true);
         GenerateMesh ();
     }
 
     void Update () {
         if (animateErosion) {
-            for (int i = 0; i < numErosionIterationsPerFrame; i++) {
+            for (int i = 0; i < iterationsPerFrame; i++) {
                 erosion.Erode (map, mapSize);
             }
+            numAnimatedErosionIterations += iterationsPerFrame;
             GenerateMesh ();
         }
     }
@@ -93,7 +95,7 @@ public class MeshGenerator : MonoBehaviour {
         AssignMeshComponents ();
         meshFilter.sharedMesh = mesh;
         meshRenderer.sharedMaterial = material;
-        material.SetFloat("_MaxHeight", elevationScale);
+        material.SetFloat ("_MaxHeight", elevationScale);
     }
 
     void AssignMeshComponents () {
