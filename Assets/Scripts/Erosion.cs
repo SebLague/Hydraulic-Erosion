@@ -28,6 +28,7 @@ public class Erosion : MonoBehaviour {
 
     int currentSeed;
     int currentErosionRadius;
+    int currentMapSize;
 
     // Initialization creates a System.Random object and precomputes indices and weights of erosion brush
     void Initialize (int mapSize, bool resetSeed) {
@@ -36,9 +37,10 @@ public class Erosion : MonoBehaviour {
             currentSeed = seed;
         }
 
-        if (erosionBrushIndices == null || currentErosionRadius != erosionRadius) {
+        if (erosionBrushIndices == null || currentErosionRadius != erosionRadius || currentMapSize != mapSize) {
             InitializeBrushIndices (mapSize, erosionRadius);
             currentErosionRadius = erosionRadius;
+            currentMapSize = mapSize;
         }
     }
 
