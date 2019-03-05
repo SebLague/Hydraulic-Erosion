@@ -88,6 +88,7 @@ public class MeshGenerator : MonoBehaviour {
             mesh.Clear ();
         }
 
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.vertices = verts;
         mesh.triangles = triangles;
         mesh.RecalculateNormals ();
