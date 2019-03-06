@@ -2,6 +2,8 @@
 Simulating erosion to try make procedural terrains look a little more natural.
 See my video on this project here: https://www.youtube.com/watch?v=eaXk97ujbPQ
 
+To run this project you'll need to open it in the Unity game engine: https://unity3d.com/
+
 Before:
 ![Before](https://i.imgur.com/c8BvDOj.jpg)
 After 70k iterations of erosion:
