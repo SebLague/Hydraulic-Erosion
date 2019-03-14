@@ -1,43 +1,52 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-[CustomEditor (typeof (MeshGenerator))]
+[CustomEditor (typeof (TerrainGenerator))]
 public class MeshEditor : Editor {
 
-    MeshGenerator m;
+    TerrainGenerator terrainGenerator;
 
     public override void OnInspectorGUI () {
         DrawDefaultInspector ();
 
         if (GUILayout.Button ("Generate Mesh")) {
-            m.StartMeshGeneration ();
+            terrainGenerator.GenerateHeightMap ();
+            terrainGenerator.ContructMesh();
         }
 
-        if (GUILayout.Button ("Erode (" + m.numErosionIterations + " iterations)")) {
+        string numIterationsString = terrainGenerator.numErosionIterations.ToString();
+        if (terrainGenerator.numErosionIterations >= 1000) {
+            numIterationsString = (terrainGenerator.numErosionIterations/1000) + "k";
+        }
+
+        if (GUILayout.Button ("Erode (" + numIterationsString + " iterations)")) {
             var sw = new System.Diagnostics.Stopwatch ();
-            sw.Start ();
-            m.Erode ();
-            sw.Stop ();
-            Debug.Log ($"Erosion finished ({m.numErosionIterations} iterations; {sw.ElapsedMilliseconds}ms)");
+
+            sw.Start();
+            terrainGenerator.GenerateHeightMap();
+            int heightMapTimer = (int)sw.ElapsedMilliseconds;
+            sw.Reset();
+
+            sw.Start();
+            terrainGenerator.Erode ();
+            int erosionTimer = (int)sw.ElapsedMilliseconds;
+            sw.Reset();
+
+            sw.Start();
+            terrainGenerator.ContructMesh();
+            int meshTimer = (int)sw.ElapsedMilliseconds;
+
+            if (terrainGenerator.printTimers) {
+                Debug.Log($"{terrainGenerator.mapSize}x{terrainGenerator.mapSize} heightmap generated in {heightMapTimer}ms");
+                Debug.Log ($"{numIterationsString} erosion iterations completed in {erosionTimer}ms");
+                Debug.Log ($"Mesh constructed in {meshTimer}ms");
+            }
+
         }
     }
 
-    void OnSceneGUI () {
-        if (m.showNumIterations) {
-            Handles.BeginGUI ();
-            GUIStyle s = new GUIStyle (EditorStyles.boldLabel);
-            s.fontSize = 40;
-
-            string label = "Erosion iterations: " + m.numAnimatedErosionIterations;
-            Vector2 labelSize = s.CalcSize (new GUIContent (label));
-
-            Rect p = SceneView.currentDrawingSceneView.position;
-            GUI.Label (new Rect (p.width / 2 - labelSize.x / 2, p.height - labelSize.y * 2.5f, labelSize.x, labelSize.y), label, s);
-            Handles.EndGUI ();
-        }
-    }
     void OnEnable () {
-        m = (MeshGenerator) target;
+        terrainGenerator = (TerrainGenerator) target;
         Tools.hidden = true;
     }
 

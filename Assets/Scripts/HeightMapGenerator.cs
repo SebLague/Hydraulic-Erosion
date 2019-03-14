@@ -9,7 +9,65 @@ public class HeightMapGenerator : MonoBehaviour {
     public float lacunarity = 2;
     public float initialScale = 2;
 
-    public float[] Generate (int mapSize) {
+    public bool useComputeShader = true;
+    public ComputeShader heightMapComputeShader;
+
+    public float[] GenerateHeightMap (int mapSize) {
+        if (useComputeShader) {
+            return GenerateHeightMapGPU (mapSize);
+        }
+        return GenerateHeightMapCPU (mapSize);
+    }
+
+    float[] GenerateHeightMapGPU (int mapSize) {
+        var prng = new System.Random (seed);
+
+        Vector2[] offsets = new Vector2[numOctaves];
+        for (int i = 0; i < numOctaves; i++) {
+            offsets[i] = new Vector2 (prng.Next (-10000, 10000), prng.Next (-10000, 10000));
+        }
+        ComputeBuffer offsetsBuffer = new ComputeBuffer (offsets.Length, sizeof (float) * 2);
+        offsetsBuffer.SetData (offsets);
+        heightMapComputeShader.SetBuffer (0, "offsets", offsetsBuffer);
+
+        int floatToIntMultiplier = 1000;
+        float[] map = new float[mapSize * mapSize];
+
+        ComputeBuffer mapBuffer = new ComputeBuffer (map.Length, sizeof (int));
+        mapBuffer.SetData (map);
+        heightMapComputeShader.SetBuffer (0, "heightMap", mapBuffer);
+
+        int[] minMaxHeight = { floatToIntMultiplier * numOctaves, 0 };
+        ComputeBuffer minMaxBuffer = new ComputeBuffer (minMaxHeight.Length, sizeof (int));
+        minMaxBuffer.SetData (minMaxHeight);
+        heightMapComputeShader.SetBuffer (0, "minMax", minMaxBuffer);
+
+        heightMapComputeShader.SetInt ("mapSize", mapSize);
+        heightMapComputeShader.SetInt ("octaves", numOctaves);
+        heightMapComputeShader.SetFloat ("lacunarity", lacunarity);
+        heightMapComputeShader.SetFloat ("persistence", persistence);
+        heightMapComputeShader.SetFloat ("scaleFactor", initialScale);
+        heightMapComputeShader.SetInt ("floatToIntMultiplier", floatToIntMultiplier);
+
+        heightMapComputeShader.Dispatch (0, map.Length, 1, 1);
+
+        mapBuffer.GetData (map);
+        minMaxBuffer.GetData (minMaxHeight);
+        mapBuffer.Release ();
+        minMaxBuffer.Release ();
+        offsetsBuffer.Release ();
+
+        float minValue = (float) minMaxHeight[0] / (float) floatToIntMultiplier;
+        float maxValue = (float) minMaxHeight[1] / (float) floatToIntMultiplier;
+
+        for (int i = 0; i < map.Length; i++) {
+            map[i] = Mathf.InverseLerp (minValue, maxValue, map[i]);
+        }
+
+        return map;
+    }
+
+    float[] GenerateHeightMapCPU (int mapSize) {
         var map = new float[mapSize * mapSize];
         seed = (randomizeSeed) ? Random.Range (-10000, 10000) : seed;
         var prng = new System.Random (seed);
