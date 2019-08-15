@@ -1,6 +1,6 @@
 # Hydraulic-Erosion
 Simulating erosion to try make procedural terrains look a little more natural.
-See my video on this project here: https://www.youtube.com/watch?v=eaXk97ujbPQ
+See my video on this project here: https://www.youtube.com/watch?v=eaXk97ujbPQ Interactive demo: https://sebastian.itch.io/hydraulic-erosion
 
 To run this project you'll need to open it in the Unity game engine: https://unity3d.com/
 
