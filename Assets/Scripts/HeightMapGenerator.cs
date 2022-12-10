@@ -20,6 +20,8 @@ public class HeightMapGenerator : MonoBehaviour {
     }
 
     float[] GenerateHeightMapGPU (int mapSize) {
+        // Generates a new random seed if randomizeSeed is true
+        seed = (randomizeSeed) ? Random.Range (-10000, 10000) : seed;
         var prng = new System.Random (seed);
 
         Vector2[] offsets = new Vector2[numOctaves];
@@ -69,6 +71,8 @@ public class HeightMapGenerator : MonoBehaviour {
 
     float[] GenerateHeightMapCPU (int mapSize) {
         var map = new float[mapSize * mapSize];
+        
+        // Generates a new random seed if randomizeSeed is true
         seed = (randomizeSeed) ? Random.Range (-10000, 10000) : seed;
         var prng = new System.Random (seed);
 

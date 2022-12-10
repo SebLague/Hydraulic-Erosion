@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Terrain 2
+  m_Name: Terrain 3
   m_Shader: {fileID: 4800000, guid: bfd71f9c93ee4428999dab466b14d8f6, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -98,3 +98,4 @@ Material:
     - _RimColour: {r: 0.8301887, g: 0.4694731, b: 0.07440368, a: 1}
     - _RockColour: {r: 0.23584908, g: 0.11488772, b: 0.070087224, a: 1}
     - _RockColour2: {r: 0.254717, g: 0.11335015, b: 0.054067295, a: 1}
+  m_BuildTextureStacks: []
