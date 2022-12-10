@@ -1,6 +1,7 @@
 ﻿using System;
 
 using UnityEngine;
+using UnityEngine.UIElements;
 
 using Random = UnityEngine.Random;
 
@@ -52,15 +53,14 @@ public class HeightMapGenerator : MonoBehaviour {
         heightMapComputeShader.SetFloat ("scaleFactor", initialScale);
         heightMapComputeShader.SetInt ("floatToIntMultiplier", floatToIntMultiplier);
 
-        
-        // ----------------------------------ERROR---------------------------------------
-        // Does not set appropriate offsets so the result is segments of the same terrain
-        
         int placement = 0;
         while(placement < map.Length)
         {
             // Create a map that can be computed
             float[] computeMap = new float[map.Length - placement >= 65535 ? 65535 : map.Length - placement];
+            
+            // Set the position offset to account for multiple id instances
+            heightMapComputeShader.SetInt ("positionOffsets", placement);
             
             // Create a buffer to folder the computed map
             ComputeBuffer mapBuffer = new ComputeBuffer (computeMap.Length, sizeof (int));

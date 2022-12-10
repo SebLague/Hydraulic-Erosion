@@ -5,6 +5,7 @@ RWStructuredBuffer<int> minMax;
 StructuredBuffer<float2> offsets;
 int floatToIntMultiplier;
 
+int positionOffsets;
 int mapSize;
 int octaves;
 float lacunarity;
@@ -103,8 +104,8 @@ float snoise(float2 v)
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    int x = id.x % mapSize;
-    int y = id.x / mapSize;
+    int x = (id.x + positionOffsets) % mapSize;
+    int y = (id.x + positionOffsets) / mapSize;
 
     float scale = scaleFactor;
     float weight = 1;
