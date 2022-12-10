@@ -65,7 +65,7 @@ Material:
     - _GlossyReflections: 1
     - _GrassBlendAmount: 1
     - _GrassFlatnessThreshold: 0.1
-    - _GrassSlopeThreshold: 0.09
+    - _GrassSlopeThreshold: 0.374
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -82,3 +82,4 @@ Material:
     - _GrassColour2: {r: 0.08072188, g: 0.11320752, b: 0, a: 1}
     - _RockColour: {r: 0.23584908, g: 0.11488772, b: 0.070087224, a: 1}
     - _RockColour2: {r: 0.254717, g: 0.11335015, b: 0.054067295, a: 1}
+  m_BuildTextureStacks: []

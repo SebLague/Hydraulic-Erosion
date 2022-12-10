@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+
+using UnityEngine;
+
+using Random = UnityEngine.Random;
 
 public class HeightMapGenerator : MonoBehaviour {
     public int seed;
@@ -23,21 +27,18 @@ public class HeightMapGenerator : MonoBehaviour {
         // Generates a new random seed if randomizeSeed is true
         seed = (randomizeSeed) ? Random.Range (-10000, 10000) : seed;
         var prng = new System.Random (seed);
-
+        
         Vector2[] offsets = new Vector2[numOctaves];
         for (int i = 0; i < numOctaves; i++) {
             offsets[i] = new Vector2 (prng.Next (-10000, 10000), prng.Next (-10000, 10000));
         }
+
         ComputeBuffer offsetsBuffer = new ComputeBuffer (offsets.Length, sizeof (float) * 2);
         offsetsBuffer.SetData (offsets);
         heightMapComputeShader.SetBuffer (0, "offsets", offsetsBuffer);
 
         int floatToIntMultiplier = 1000;
         float[] map = new float[mapSize * mapSize];
-
-        ComputeBuffer mapBuffer = new ComputeBuffer (map.Length, sizeof (int));
-        mapBuffer.SetData (map);
-        heightMapComputeShader.SetBuffer (0, "heightMap", mapBuffer);
 
         int[] minMaxHeight = { floatToIntMultiplier * numOctaves, 0 };
         ComputeBuffer minMaxBuffer = new ComputeBuffer (minMaxHeight.Length, sizeof (int));
@@ -51,11 +52,38 @@ public class HeightMapGenerator : MonoBehaviour {
         heightMapComputeShader.SetFloat ("scaleFactor", initialScale);
         heightMapComputeShader.SetInt ("floatToIntMultiplier", floatToIntMultiplier);
 
-        heightMapComputeShader.Dispatch (0, map.Length, 1, 1);
+        
+        // ----------------------------------ERROR---------------------------------------
+        // Does not set appropriate offsets so the result is segments of the same terrain
+        
+        int placement = 0;
+        while(placement < map.Length)
+        {
+            // Create a map that can be computed
+            float[] computeMap = new float[map.Length - placement >= 65535 ? 65535 : map.Length - placement];
+            
+            // Create a buffer to folder the computed map
+            ComputeBuffer mapBuffer = new ComputeBuffer (computeMap.Length, sizeof (int));
+            mapBuffer.SetData(computeMap);
+            
+            // Set the buffer in the shader
+            heightMapComputeShader.SetBuffer (0, "heightMap", mapBuffer);
+            
+            // Dispatch the shader to calculate the segment
+            heightMapComputeShader.Dispatch (0, computeMap.Length, 1, 1);
+            
+            // Get the data then dispose of the buffer
+            mapBuffer.GetData(computeMap);
+            mapBuffer.Dispose();
+            
+            // Copy the data to the map
+            Array.ConstrainedCopy(computeMap, 0, map, placement, computeMap.Length);
+            
+            // Move the copy pointer along
+            placement += 65535;
+        }
 
-        mapBuffer.GetData (map);
         minMaxBuffer.GetData (minMaxHeight);
-        mapBuffer.Release ();
         minMaxBuffer.Release ();
         offsetsBuffer.Release ();
 

@@ -98,3 +98,4 @@ Material:
     - _RimColour: {r: 0.8301887, g: 0.4694731, b: 0.07440368, a: 1}
     - _RockColour: {r: 0.23584908, g: 0.11488772, b: 0.070087224, a: 1}
     - _RockColour2: {r: 0.254717, g: 0.11335015, b: 0.054067295, a: 1}
+  m_BuildTextureStacks: []
