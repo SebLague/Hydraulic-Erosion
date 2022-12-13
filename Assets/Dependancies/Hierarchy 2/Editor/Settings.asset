@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7bbe92ee6f2f74ab6bb3656648fd63, type: 3}
+  m_Name: Settings
+  m_EditorClassIdentifier: 
+  personalTheme:
+    colorRowEven: {r: 0.7607844, g: 0.7607844, b: 0.7607844, a: 1}
+    colorRowOdd: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 1}
+    colorGrid: {r: 0, g: 0, b: 0, a: 0.16078432}
+    colorTreeView: {r: 0.47843137, g: 0.47843137, b: 0.47843137, a: 1}
+    colorLockIcon: {r: 0.31764707, g: 0.31764707, b: 0.31764707, a: 1}
+    tagColor: {r: 0, g: 0, b: 0, a: 1}
+    layerColor: {r: 0, g: 0, b: 0, a: 1}
+    comSelBGColor: {r: 0.9198113, g: 0.9645067, b: 1, a: 1}
+    selectionColor: {r: 0, g: 0.54901963, b: 1, a: 0.5019608}
+    colorHeaderTitle: {r: 0.078431375, g: 0.078431375, b: 0.078431375, a: 1}
+    colorHeaderBackground: {r: 0.9098039, g: 0.9098039, b: 0.9098039, a: 1}
+  professionalTheme:
+    colorRowEven: {r: 0.21176471, g: 0.21176471, b: 0.21176471, a: 1}
+    colorRowOdd: {r: 0.21960784, g: 0.21960784, b: 0.21960784, a: 1}
+    colorGrid: {r: 0.16078432, g: 0.16078432, b: 0.16078432, a: 1}
+    colorTreeView: {r: 0.41960785, g: 0.41960785, b: 0.41960785, a: 1}
+    colorLockIcon: {r: 0.69803923, g: 0.69803923, b: 0.69803923, a: 1}
+    tagColor: {r: 0.7058824, g: 0.7058824, b: 0.7058824, a: 1}
+    layerColor: {r: 0.7058824, g: 0.7058824, b: 0.7058824, a: 1}
+    comSelBGColor: {r: 1, g: 0.16078432, b: 0.16078432, a: 0.5529412}
+    selectionColor: {r: 0.17254902, g: 0.3647059, b: 0.5294118, a: 1}
+    colorHeaderTitle: {r: 0.8235295, g: 0.8235295, b: 0.8235295, a: 1}
+    colorHeaderBackground: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
+  playmodeTheme:
+    colorRowEven: {r: 0.10388456, g: 0.10388456, b: 0.10388456, a: 1}
+    colorRowOdd: {r: 0.10773214, g: 0.10773214, b: 0.10773214, a: 1}
+    colorGrid: {r: 0.07887532, g: 0.07887532, b: 0.07887532, a: 1}
+    colorTreeView: {r: 0.20584534, g: 0.20584534, b: 0.20584534, a: 1}
+    colorLockIcon: {r: 0.34243432, g: 0.34243432, b: 0.34243432, a: 1}
+    tagColor: {r: 0.3462819, g: 0.3462819, b: 0.3462819, a: 1}
+    layerColor: {r: 0.3462819, g: 0.3462819, b: 0.3462819, a: 1}
+    comSelBGColor: {r: 0.490566, g: 0.07887532, b: 0.07887532, a: 0.5529412}
+    selectionColor: {r: 0.08464668, g: 0.17891231, b: 0.2597114, a: 1}
+    colorHeaderTitle: {r: 0.40399554, g: 0.40399554, b: 0.40399554, a: 1}
+    colorHeaderBackground: {r: 0.2462449, g: 0.2462449, b: 0.2462449, a: 1}
+  activeHierarchy: 1
+  displayCustomObjectIcon: 1
+  displayTreeView: 1
+  displayRowBackground: 1
+  displayGrid: 1
+  displayStaticButton: 1
+  offSetIconAfterName: 8
+  displayComponents: 1
+  componentAlignment: 1
+  componentDisplayMode: 3
+  components:
+  - Transform
+  - RectTransform
+  componentLimited: 0
+  componentSize: 16
+  componentSpacing: 2
+  displayTag: 1
+  tagAlignment: 0
+  displayLayer: 1
+  layerAlignment: 0
+  applyStaticTargetAndChild: 1
+  applyTagTargetAndChild: 0
+  applyLayerTargetAndChild: 1
+  separatorStartWith: --->
+  separatorDefaultTag: Untagged
+  useInstantBackground: 1
+  instantBackgroundColors: []
+  onlyDisplayWhileMouseEnter: 0
+  contentDisplay: 1
