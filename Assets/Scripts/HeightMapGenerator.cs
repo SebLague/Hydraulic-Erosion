@@ -20,6 +20,7 @@ public class HeightMapGenerator : MonoBehaviour {
     }
 
     float[] GenerateHeightMapGPU (int mapSize) {
+        seed = (randomizeSeed) ? Random.Range(-10000, 10000) : seed;
         var prng = new System.Random (seed);
 
         Vector2[] offsets = new Vector2[numOctaves];
@@ -48,8 +49,9 @@ public class HeightMapGenerator : MonoBehaviour {
         heightMapComputeShader.SetFloat ("persistence", persistence);
         heightMapComputeShader.SetFloat ("scaleFactor", initialScale);
         heightMapComputeShader.SetInt ("floatToIntMultiplier", floatToIntMultiplier);
+        heightMapComputeShader.SetInt("heightMapSize", map.Length);
 
-        heightMapComputeShader.Dispatch (0, map.Length, 1, 1);
+        SebStuff.Helpers.ComputeHelper.Dispatch(heightMapComputeShader, map.Length);
 
         mapBuffer.GetData (map);
         minMaxBuffer.GetData (minMaxHeight);
